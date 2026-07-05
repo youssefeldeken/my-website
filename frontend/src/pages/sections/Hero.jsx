@@ -12,6 +12,7 @@ export default function Hero() {
   const [name, setName] = useState(staticProfile.name);
   const [summary, setSummary] = useState(staticProfile.summary);
   const [taglines, setTaglines] = useState(staticProfile.taglines);
+  const [resumeUrl, setResumeUrl] = useState(null);
 
   useEffect(() => {
     api
@@ -21,6 +22,7 @@ export default function Hero() {
         if (s?.heroTitle) setName(s.heroTitle);
         if (s?.summary) setSummary(s.summary);
         if (s?.heroTaglines?.length) setTaglines(s.heroTaglines);
+        if (s?.resumeUrl) setResumeUrl(s.resumeUrl);
       })
       .catch(() => {
         // Backend unreachable — static fallback from the CV stays in place
@@ -50,7 +52,9 @@ export default function Hero() {
 
           <div className="flex flex-wrap gap-4">
             <a
-              href="/api/resume"
+              href={resumeUrl || '/cv'}
+              target={resumeUrl ? '_blank' : undefined}
+              rel={resumeUrl ? 'noreferrer' : undefined}
               className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-primary text-bg font-medium hover:shadow-glow transition-shadow focus-ring"
             >
               <Download size={18} /> Download CV

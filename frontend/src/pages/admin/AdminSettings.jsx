@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Save, Upload, User } from 'lucide-react';
 import api from '../../services/api.js';
+import ImageCropModal from '../../components/ImageCropModal.jsx';
 
 export default function AdminSettings() {
   const [settings, setSettings] = useState(null);
   const [resumeFile, setResumeFile] = useState(null);
-  const [photoFile, setPhotoFile] = useState(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [cropSrc, setCropSrc] = useState(null); // object URL of the photo currently being cropped
 
   useEffect(() => {
     api.get('/settings').then(({ data }) => setSettings(data.data)).catch(() => {});
@@ -25,22 +26,32 @@ export default function AdminSettings() {
     }
   };
 
-  const uploadPhoto = async () => {
-    if (!photoFile) return toast.error('Choose an image first');
+  const onPhotoSelected = (file) => {
+    if (!file) return;
+    setCropSrc(URL.createObjectURL(file));
+  };
+
+  const onCropCancel = () => {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+  };
+
+  const onCropConfirm = async (croppedBlob) => {
     setUploadingPhoto(true);
     const fd = new FormData();
-    fd.append('image', photoFile);
+    fd.append('image', croppedBlob, 'profile.jpg');
     try {
       const { data } = await api.post('/uploads/single', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       const updated = { ...settings, profileImage: data.url };
       setSettings(updated);
       await api.put('/settings', updated);
       toast.success('Profile photo updated — refresh the site to see it live');
-      setPhotoFile(null);
     } catch {
       toast.error('Upload failed');
     } finally {
       setUploadingPhoto(false);
+      if (cropSrc) URL.revokeObjectURL(cropSrc);
+      setCropSrc(null);
     }
   };
 
@@ -110,13 +121,17 @@ export default function AdminSettings() {
               <User size={24} className="text-muted" />
             )}
           </div>
-          <p className="text-xs text-muted">Current photo shown on the homepage hero.</p>
+          <p className="text-xs text-muted">Current photo shown on the homepage hero. Choosing a new file opens a crop step so you can frame it before it's saved.</p>
         </div>
         <div className="flex gap-3">
-          <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files[0])} className="text-sm flex-1" />
-          <button onClick={uploadPhoto} disabled={uploadingPhoto} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-bg text-sm font-medium disabled:opacity-60">
-            <Upload size={16} /> {uploadingPhoto ? 'Uploading…' : 'Upload'}
-          </button>
+          <input
+            type="file"
+            accept="image/*"
+            disabled={uploadingPhoto}
+            onChange={(e) => onPhotoSelected(e.target.files[0])}
+            className="text-sm flex-1"
+          />
+          {uploadingPhoto && <span className="text-xs text-muted font-mono self-center">Uploading…</span>}
         </div>
       </div>
 
@@ -129,6 +144,15 @@ export default function AdminSettings() {
           </button>
         </div>
       </div>
+
+      {cropSrc && (
+        <ImageCropModal
+          imageSrc={cropSrc}
+          aspect={1}
+          onCancel={onCropCancel}
+          onConfirm={onCropConfirm}
+        />
+      )}
     </div>
   );
 }
