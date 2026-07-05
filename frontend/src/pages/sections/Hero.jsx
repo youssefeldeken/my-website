@@ -1,12 +1,32 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Download, FolderGit2, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NetworkBackground from '../../components/NetworkBackground.jsx';
 import TerminalHero from '../../components/TerminalHero.jsx';
 import ProfilePhoto from '../../components/ProfilePhoto.jsx';
-import { profile } from '../../data/portfolioData.js';
+import { profile as staticProfile } from '../../data/portfolioData.js';
+import api from '../../services/api.js';
 
 export default function Hero() {
+  const [name, setName] = useState(staticProfile.name);
+  const [summary, setSummary] = useState(staticProfile.summary);
+  const [taglines, setTaglines] = useState(staticProfile.taglines);
+
+  useEffect(() => {
+    api
+      .get('/settings')
+      .then(({ data }) => {
+        const s = data.data;
+        if (s?.heroTitle) setName(s.heroTitle);
+        if (s?.summary) setSummary(s.summary);
+        if (s?.heroTaglines?.length) setTaglines(s.heroTaglines);
+      })
+      .catch(() => {
+        // Backend unreachable — static fallback from the CV stays in place
+      });
+  }, []);
+
   return (
     <section className="relative min-h-screen flex items-center pt-24 pb-16 overflow-hidden grid-overlay">
       <NetworkBackground />
@@ -24,9 +44,9 @@ export default function Hero() {
             </p>
           </div>
           <h1 className="font-display text-4xl sm:text-6xl font-bold leading-tight mb-6">
-            {profile.name}
+            {name}
           </h1>
-          <p className="text-muted text-lg max-w-lg mb-8">{profile.summary}</p>
+          <p className="text-muted text-lg max-w-lg mb-8">{summary}</p>
 
           <div className="flex flex-wrap gap-4">
             <a
@@ -52,7 +72,7 @@ export default function Hero() {
 
         <div className="flex flex-col items-center lg:items-end gap-6">
           <ProfilePhoto size={168} />
-          <TerminalHero taglines={profile.taglines} />
+          <TerminalHero taglines={taglines} name={name} />
         </div>
       </div>
     </section>

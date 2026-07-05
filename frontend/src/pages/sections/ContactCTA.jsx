@@ -1,12 +1,34 @@
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { Send, Mail, Phone, MapPin } from 'lucide-react';
 import SectionHeading from '../../components/SectionHeading.jsx';
-import { profile } from '../../data/portfolioData.js';
+import { profile as staticProfile } from '../../data/portfolioData.js';
 import api from '../../services/api.js';
 
 export default function ContactCTA() {
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm();
+  const [contact, setContact] = useState({
+    email: staticProfile.email,
+    phone: staticProfile.phone,
+    location: staticProfile.location,
+  });
+
+  useEffect(() => {
+    api
+      .get('/settings')
+      .then(({ data }) => {
+        const s = data.data;
+        setContact((prev) => ({
+          email: s?.email || prev.email,
+          phone: s?.phone || prev.phone,
+          location: s?.location || prev.location,
+        }));
+      })
+      .catch(() => {
+        // Backend unreachable — static fallback from the CV stays in place
+      });
+  }, []);
 
   const onSubmit = async (formData) => {
     try {
@@ -29,15 +51,15 @@ export default function ContactCTA() {
           </p>
           <div className="flex items-center gap-3 text-sm">
             <Mail size={16} className="text-primary" />
-            <a href={`mailto:${profile.email}`} className="hover:text-primary focus-ring rounded">{profile.email}</a>
+            <a href={`mailto:${contact.email}`} className="hover:text-primary focus-ring rounded">{contact.email}</a>
           </div>
           <div className="flex items-center gap-3 text-sm">
             <Phone size={16} className="text-primary" />
-            <span>{profile.phone}</span>
+            <span>{contact.phone}</span>
           </div>
           <div className="flex items-center gap-3 text-sm">
             <MapPin size={16} className="text-primary" />
-            <span>{profile.location}</span>
+            <span>{contact.location}</span>
           </div>
         </div>
 

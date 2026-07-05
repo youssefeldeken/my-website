@@ -80,12 +80,20 @@ export default function AdminSettings() {
           </div>
         </div>
         <div>
+          <label className="text-xs font-mono text-muted">Location</label>
+          <input value={settings.location || ''} onChange={(e) => setSettings({ ...settings, location: e.target.value })} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm" />
+        </div>
+        <div>
           <label className="text-xs font-mono text-muted">GitHub URL</label>
           <input value={settings.socialLinks?.github || ''} onChange={(e) => setSettings({ ...settings, socialLinks: { ...settings.socialLinks, github: e.target.value } })} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm" />
         </div>
         <div>
           <label className="text-xs font-mono text-muted">LinkedIn URL</label>
           <input value={settings.socialLinks?.linkedin || ''} onChange={(e) => setSettings({ ...settings, socialLinks: { ...settings.socialLinks, linkedin: e.target.value } })} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label className="text-xs font-mono text-muted">Website URL</label>
+          <input value={settings.socialLinks?.website || ''} onChange={(e) => setSettings({ ...settings, socialLinks: { ...settings.socialLinks, website: e.target.value } })} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm" />
         </div>
         <button type="submit" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-bg font-medium hover:shadow-glow">
           <Save size={16} /> Save Settings
